@@ -17,12 +17,7 @@ mongoose.connect(MONGO_URL, {useNewUrlParser:true,useUnifiedTopology:true })
 
 app.use(cors())
 app.use(express.json())
-/*
-app.use(timeout("12000s"));
-function haltOnTimedout(req, res, next){
-    if (!req.timedout) next();
- }
-app.use(haltOnTimedout);*/
+app.use(express.static(path.join(__dirname, 'client/build')));
 
 //app.use(express.static(path.join(__dirname ,'/public')))
 
