@@ -1,0 +1,63 @@
+
+.container1{
+    display:flex;
+    flex-direction:column;
+    height:800px;
+    width:100%;
+    background:url("https://www.expatica.com/app/uploads/sites/6/2017/05/selling-a-car-1920x1080.jpg");
+    background-size: cover;
+    background-repeat: no-repeat;
+    margin:0px 0px 0px 0px;
+    justify-content: center;
+    align-items: center;
+    
+}
+
+.secondary-container{
+background-color:rgb(255, 255, 255);
+opacity: 70%;
+display:flex;
+flex-direction:column;
+align-content: center;
+justify-content:center ;
+height:400px;
+width:60%;
+border-radius: 2%;
+
+}
+
+.form-group{
+    display:flex;
+    flex-direction: row;
+    justify-content: center;
+    height:35px;
+    margin-top: 10px;
+}
+
+.form-group input{
+    width:50%;
+}
+
+.form-group label{
+    width:90px;
+}
+
+.button-container{
+    display:flex;
+    flex-direction: row;
+    justify-content: center;
+    margin-top: 20px;
+}
+
+button{
+    width:300px;
+}
+
+h1{
+    /*color:rgb(30, 5, 255);*/
+    color:rgba(255, 0, 0, 0.74);
+    font-weight: 400;
+    font-size: large;
+}
+
+

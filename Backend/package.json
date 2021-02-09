@@ -1,0 +1,29 @@
+{
+  "name": "scrape",
+  "version": "1.0.0",
+  "description": "scrape",
+  "main": "index.js",
+  "scripts": {
+    "start": "nodemon server.js",
+    "scrape": "node scrape.js",
+    "scrape2":"node scrape2.js",
+    "scrape3": "node scrape3.js"
+  },
+  "author": "scrappy",
+  "license": "ISC",
+  "keywords": [
+    "scrape"
+  ],
+  "dependencies": {
+    "axios": "^0.19.2",
+    "bcrypt": "^5.0.0",
+    "cheerio": "^1.0.0-rc.3",
+    "connect-timeout": "^1.9.0",
+    "cors": "^2.8.5",
+    "dotenv": "^8.2.0",
+    "express": "^4.17.1",
+    "jsonwebtoken": "^8.5.1",
+    "mongoose": "^5.9.19",
+    "nodemon": "^2.0.4"
+  }
+}

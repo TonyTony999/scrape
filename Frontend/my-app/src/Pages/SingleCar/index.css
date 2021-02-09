@@ -1,0 +1,34 @@
+img{
+    max-width: 800px;
+    height:auto
+}
+
+#car_info{
+    display:flex;
+    flex-direction: row;
+    /*background: red;*/
+    width:95%;
+    justify-content: space-between;
+    background: #b1c2e2d3;
+   
+}
+
+#versiones_list_div{
+    margin-top: 5%;
+    width:70%;
+    
+}
+
+#img_div{
+    margin: 2%;
+    width:auto;
+}
+
+#list_div{
+    margin:2%;
+    width:30%;
+}
+
+#version_0{
+background: rgba(255, 163, 25, 0.678);
+}

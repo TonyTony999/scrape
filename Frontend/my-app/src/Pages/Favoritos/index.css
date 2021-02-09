@@ -1,0 +1,156 @@
+
+.contain{
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    margin-right:2%;
+    width:100% ;
+    /*background: blue;*/
+}
+.navbar{
+    height:70px;
+    width:100%;
+    background:orange;
+    margin-bottom: 30px;
+    padding-right: 50px;
+    display:flex;
+    flex-direction: row;
+   /* position:relative;*/
+}
+
+#left_div{
+    width:50%;
+    height:70px;
+    display: flex;
+    flex-direction: row;
+    justify-content: flex-start;
+    align-items: center;
+}
+
+#right_div{
+    width:50%;
+    height:70px;
+    display:flex;
+    flex-direction: row;
+    justify-content:flex-end;
+    align-items: center;
+}
+
+#user-name{
+ margin-right:10px;
+}
+
+#circular_profile_pic{
+    width:50px;
+    height:50px;
+    background-color: red;
+    border-radius: 50%;
+    overflow: hidden;
+}
+
+#car_profile{
+    position: relative;
+    bottom:10px;
+    width:100%;
+    height:auto
+}
+
+#dropdown_menu{
+   width:200px;
+   height:auto;
+   display:none;
+   background:rgb(255, 168, 6)
+}
+
+#dropdown_menu a {
+   text-decoration: none;
+   line-height:20px;
+   margin: 10px 10px;
+}
+
+
+#right_div:hover #dropdown_menu {
+   display:flex;
+   flex-direction: column;
+   position: absolute;
+   top: 70px;
+  
+  }
+
+  /*Favoritos */
+
+
+
+  #favorites_container{
+      width:100%;
+      height:auto;
+      display:flex;
+      flex-direction: column;
+      padding-left:2%;
+      padding-right: 2%;
+      margin-top: 5%;
+
+  }
+
+  #table_favorites{
+    width:80%;
+    display:flex;
+    flex-direction: row;
+    justify-content: space-evenly;
+    background-color: gray;
+    margin-left: 10%;
+}
+
+  .favorites_individual_content{
+      margin-left: 5%;
+  }
+
+  .favorites_individual{
+      display: flex;
+      flex-direction: row;
+      width:100%;
+      background-color: rgb(206, 198, 198);
+      height:90px;
+      margin-top: 1%;
+      justify-content: left;
+      border-radius: 2%;
+  }
+
+  .favorite_element{
+      display:flex;
+      flex-direction: row;
+      align-items: center;
+      margin-left: 8%;
+
+}
+
+  #favorite_img_container{
+      width:90px;
+      height:auto;
+      margin-left: 2%;
+  }
+
+  .eliminar_button{
+      width:5%;
+      height:50%;
+      border-radius: 5%;
+      margin-left: 5%;
+      margin-top:20px;
+  }
+
+  #min_price_dif{
+      margin-left:200px;
+      
+  }
+
+  #positive{
+    color:red;
+    margin-left:200px;
+}
+
+#negative{
+    color:green;
+    margin-left:200px;
+}
+
+  /*Favoritos */

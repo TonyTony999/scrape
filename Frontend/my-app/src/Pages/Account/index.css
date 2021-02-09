@@ -1,0 +1,35 @@
+.contain{
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    margin-right:2%;
+    width:100% ;
+  
+}
+
+#account_config{
+    width:100%;
+    height:auto;
+    margin-left: 50px;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+}
+
+.account_info{
+    display: flex;
+    flex-direction: row;
+    justify-content: flex-start;
+    align-items: center;
+}
+
+.account_info h4{
+    color:cadetblue;
+}
+
+.account_info h5{
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin-left: 10px;
+}
