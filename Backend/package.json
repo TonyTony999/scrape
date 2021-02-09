@@ -7,7 +7,8 @@
     "start": "node server.js",
     "scrape": "node scrape.js",
     "scrape2":"node scrape2.js",
-    "scrape3": "node scrape3.js"
+    "scrape3": "node scrape3.js",
+    "heroku-postbuild": "cd ../Frontend && npm install && npm run build"
   },
   "author": "scrappy",
   "license": "ISC",
