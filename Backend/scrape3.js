@@ -23,13 +23,14 @@ mongoose.connect(MONGO_URL, { useNewUrlParser: true, useUnifiedTopology: true })
 
 
 async function getDefResults() {
+    console.log(`started getdef at ${new Date(Date.now()).toString()}`)
 
     async function processData() {
         let newArr = []
         return await axios.get("https://carros.tucarro.com.co/_PublishedToday_YES").then(res3 => {
 
             const $ = cheerio.load(res3.data)
-            let numberCarros = $("main").find("div>div>div>aside>div").next().html()
+            let numberCarros = $("main").find("div>div>aside>div").next().html()
             console.log(numberCarros)
             //let numCars = numberCarros.match(/\d+/)[0]
             numberCarros = numberCarros.replace(/\W+/g, "")
@@ -39,7 +40,7 @@ async function getDefResults() {
 
             let num = 97
             let arr = [49, 97]
-            while (num < parseFloat(numberCarros)) {
+            while (num < parseFloat(numberCarros[0])) {
                 num += 48
                 arr.push(num)
             }
@@ -52,7 +53,7 @@ async function getDefResults() {
     async function getScrapeData() {
 
         let arr = await processData()
-       // arr=arr.slice(0,5)
+        arr = arr.slice(0, 3)
         let scrapeData = []
 
         for (let z = 0; z < arr.length; z++) {
@@ -60,105 +61,150 @@ async function getDefResults() {
             try {
                 await axios.get(`https://carros.tucarro.com.co/_Desde_${arr[z]}_PublishedToday_YES`).then(res3 => {
                     const $ = cheerio.load(res3.data)
-                    let list = $("main", ".results-item").find("div>div>div>section>ol").html()
-                    $("li").each((index, element) => {
-                        let title = $(element).find("div>a>div>h2").html()
-                        let yearKilometraje = $(element).find("div>a>div>div").next().html()
-                        let price = $(element).find("div>a>div>div>span").next().html()
-                        let ubicacion = $(element).find("div>a>div>div").next().next().next().html()
-                        let img = $(element).find("div>div>div>div>ul>li>a").html()
-                        let link = $(element).find("div").html()
-                        let date = new Date().toString()
+                    let attempt = $("main").find("div>div>section").html()
+                    const $$ = cheerio.load(attempt)
+                    
+                    $$("ol").each((index, element) => {
+                        let ols = cheerio.load(element)
+                        ols("li").each((index_2, li) => {
 
-                        if (title && yearKilometraje && price && ubicacion) {
+                            let obj = {}
+                            let li_item = cheerio.load(li)
 
-                            if (ubicacion === "Bogot&#xE1; D.C.") {
-                                ubicacion = "Bogota"
+                            let info = li_item("div").find("div>div").next().html()
+                            if (info && info.length) {
 
-                            }
-                            else if (ubicacion === "Bol&#xED;var") {
-                                ubicacion = "Bolivar"
+                                let image = li_item("div").find("div>div>a>div>div>div>div>div").html()
+                                let image_index_1 = image.indexOf("https:")
+                                let image_index_2 = image.indexOf("alt=")
+                                let image_slice = image.slice(image_index_1, image_index_2)
+                                obj.img = image_slice
 
-                            }
-                            else if (ubicacion === "Atl&#xE1;ntico") {
-                                ubicacion = "Atlantico"
+                                let link = li_item("div").find("div>div").html()
+                                let link_index_1 = link.indexOf("https")
+                                let link_index_2 = link.indexOf('type=item&amp;')
+                                obj.link = link.slice(link_index_1, link_index_2)
 
-                            }
-                            else if (ubicacion === "Nari&#xF1;o") {
-                                ubicacion = "Nariño"
-
-                            }
-                            else if (ubicacion === "C&#xF3;rdoba") {
-                                ubicacion = "Cordoba"
-
-                            }
-
-
-                            let titleRegex = />(.*)</
-                            let titleMatch = title.match(titleRegex)
-
-                            if (titleMatch) {
-                                title = titleMatch[1]
-                                titleSpanMatch = title.match(/<\/span>/)//acortar titulo cortandolo desde span hasta final
-                                if (titleSpanMatch) {
-                                    title = title.slice(0, title.indexOf(titleSpanMatch[0]))
+                                let price_regex = /\d+.\d+.\d+/g
+                                let price_match = info.match(price_regex)
+                                if (price_match && price_match.length !== 0) {
+                                    price_match = price_match[0].replace(/\W+/g, "", "g")
+                                    obj.price = parseInt(price_match)
                                 }
+
+                                let year_index_1 = info.indexOf("ui-search-card-attributes__attribute")
+                                let year_index_2 = info.indexOf("ui-search-card-attributes__attribute", year_index_1 + 1)
+                                let year_slice = info.slice(year_index_1, year_index_2)
+                                let year_regex = /\d+/g
+                                let year_match = year_slice.match(year_regex)
+                                if (year_match && year_match.length !== 0) {
+                                    obj.year = parseInt(year_match[0])
+                                }
+
+                                let kilometraje_regex = /\d+.\d+\sKm/g
+                                let kilometraje_match = info.match(kilometraje_regex)
+                                if (kilometraje_match && kilometraje_match.length !== 0) {
+                                    kilometraje_match=kilometraje_match[0].replace(".", "")
+                                    kilometraje_match=kilometraje_match.match(/\d+/g)
+                                    kilometraje_match=parseInt(kilometraje_match[0])
+
+                                    obj.kilometraje = kilometraje_match
+                                }
+
+                                let location_index = info.indexOf("ui-search-item__group__element ui-search-item__location")
+                                let location_index_2 = info.indexOf("span", location_index)
+                                let location_slice = info.slice(location_index, location_index_2)
+                                if (location_slice && location_slice.length !== 0) {
+                                    let start_index=location_slice.indexOf('">')
+                                    let last_index=location_slice.indexOf('</')
+                                    let ubicacion=location_slice.slice(start_index+2,last_index)
+                                    if (ubicacion === "Bogot&#xE1; D.C.") {
+                                        ubicacion = "Bogota"
+        
+                                    }
+                                    else if (ubicacion === "Bol&#xED;var") {
+                                        ubicacion = "Bolivar"
+        
+                                    }
+                                    else if (ubicacion === "Atl&#xE1;ntico") {
+                                        ubicacion = "Atlantico"
+        
+                                    }
+                                    else if (ubicacion === "Nari&#xF1;o") {
+                                        ubicacion = "Nariño"
+        
+                                    }
+                                    else if (ubicacion === "C&#xF3;rdoba") {
+                                        ubicacion = "Cordoba"
+        
+                                    }
+                                    
+                                        obj.ubicacion = ubicacion
+                                
                             }
 
-                            let imgStart = img.indexOf("https")
-                            let imgEnd = img.indexOf(".jpg")
-                            img = img.slice(imgStart, imgEnd) + (".jpg")
+                                let marca_index = info.indexOf("ui-search-item__title ui-search-item__group__element")
+                                let marca_index_2 = info.indexOf("</h2>", marca_index)
+                                let marca_slice = info.slice(marca_index, marca_index_2)
+                                if (marca_slice && marca_slice.length !== 0) {
+                                    let start_index=marca_slice.indexOf('">')
+                                    marca_slice=marca_slice.slice(start_index+2)
+                                    obj.title = marca_slice
+                                }
 
-                            let year = yearKilometraje.match(/\d+/)
-                            let kilometraje = yearKilometraje.match(/\d+[" "]km/)
-                            link = link.match(/item-url=[\s\S]+\s$/i)[0].split(" ")
-                            if (link) {
-                                link = (link[0])
-                                link = link.match(/https(.*)/i)[0]
+                                obj.date=new Date(Date.now()).toString()
+
+
+                                //console.log(obj)
+                                scrapeData.push(obj)
                             }
 
-                            scrapeData.push({ title: title, year: year, kilometraje: kilometraje, ubicacion: ubicacion, price: price, link: link, img: img, date: date })
-
-                        }
-
+                        })
                     })
+                    
+                    console.log("SIGUIENTE PAGINA")
 
                 })
 
             } catch (err) {
                 //console.log(err)
-                console.log(arr[z])
+                console.log(`error at :${arr[z]}`, err)
             }
 
         }
-
-        return scrapeData
+       console.log(scrapeData)
+       console.log("scrape data length is", scrapeData.length)
+       return scrapeData
     }
 
-    return await getScrapeData().then(result => {
-        // console.log("result is " + result.length)
-        async function saveCars() {
-            let arr = []
-            for (let i = 0; i < result.length; i++) {
-                let item = await scrape3Cars.create({
-                    title: result[i].title,
-                    year: result[i].year,
-                    kilometraje: result[i].kilometraje,
-                    ubicacion: result[i].ubicacion,
-                    price: result[i].price,
-                    link: result[i].link,
-                    img: result[i].img,
-                    date: result[i].date
-                })
-                arr.push(item)
-            }
-            return arr
-        }
-        saveCars().then(response => {
-            console.log("response length is: ", response.length)
-        })
 
-    })
+    return await getScrapeData().then(result => {
+         // console.log("result is " + result.length)
+         async function saveCars() {
+             let arr = []
+             for (let i = 0; i < result.length; i++) {
+                 let item = await scrape3Cars.create({
+                     title: result[i].title,
+                     year: result[i].year,
+                     kilometraje: result[i].kilometraje,
+                     ubicacion: result[i].ubicacion,
+                     price: result[i].price,
+                     link: result[i].link,
+                     img: result[i].img,
+                     date: result[i].date
+                 })
+                 arr.push(item)
+             }
+             return arr
+         }
+         saveCars().then(response => {
+             console.log("response length is: ", response.length)
+         })
+ 
+     })
+
+    //processData()
+
 
 }
 
@@ -368,8 +414,8 @@ async function allCars(fech) {
                                 return acum += prevV
                             })
                             average = sum / cell.length
-                            
-                            let minPD,maxPD,aPD
+
+                            let minPD, maxPD, aPD
 
                             let price = parseFloat(arr[i].price.replace(/\W+/g, ""))//convert price to number and remove points*/
                             let minPriceDif = minPrice - price
@@ -379,7 +425,7 @@ async function allCars(fech) {
 
                             let maxPriceDif = Math.floor(maxPrice - price)
                             maxPriceDif > 0 ? maxPD = `- ${Math.floor((maxPriceDif / maxPrice) * 100)}%`
-                                : maxPD = `+ ${Math.floor((maxPriceDif * -1 /maxPrice) * 100)}%`
+                                : maxPD = `+ ${Math.floor((maxPriceDif * -1 / maxPrice) * 100)}%`
                             arr[i].maxPriceDif = maxPD
 
                             let averagePriceDif = Math.floor(average - price)
@@ -394,7 +440,7 @@ async function allCars(fech) {
                         versionMatch.push({
                             title: arr[i].title, marca: arr[i].marca, year: arr[i].year, price: arr[i].price, averagePrice: average, minPrice: minPrice, maxPrice: maxPrice,
                             ubicacion: arr[i].ubicacion, kilometraje: arr[i].kilometraje, link: arr[i].link, img: arr[i].img, date: arr[i].date, versiones: cell,
-                            minPriceDif:arr[i].minPriceDif,maxPriceDif:arr[i].maxPriceDif,averagePriceDif:arr[i].averagePriceDif
+                            minPriceDif: arr[i].minPriceDif, maxPriceDif: arr[i].maxPriceDif, averagePriceDif: arr[i].averagePriceDif
                         })
                     }
                 }
@@ -433,9 +479,9 @@ async function allCars(fech) {
                     averagePrice: result[i].averagePrice,
                     minPrice: result[i].minPrice,
                     maxPrice: result[i].maxPrice,
-                    minPriceDif:result[i].minPriceDif,
-                    maxPriceDif:result[i].maxPriceDif,
-                    averagePriceDif:result[i].averagePriceDif,
+                    minPriceDif: result[i].minPriceDif,
+                    maxPriceDif: result[i].maxPriceDif,
+                    averagePriceDif: result[i].averagePriceDif,
                     ubicacion: result[i].ubicacion,
                     kilometraje: result[i].kilometraje,
                     link: result[i].link,
@@ -457,7 +503,7 @@ async function allCars(fech) {
 
 async function deleteScrape3(fecha) {
     let query
-    arguments.length != 0 ? query = {date:{$regex: new RegExp(String.raw`${fecha}`) } } : query = {}
+    arguments.length != 0 ? query = { date: { $regex: new RegExp(String.raw`${fecha}`) } } : query = {}
 
     let arr = await scrape3Cars.find(query)
     for (let i = 0; i < arr.length; i++) {
@@ -469,7 +515,7 @@ async function deleteScrape3(fecha) {
 async function deleteScrape3Cars(fecha) {
 
     let query
-    arguments.length != 0 ? query = {date:{$regex: new RegExp(String.raw`${fecha}`) } } : query = {}
+    arguments.length != 0 ? query = { date: { $regex: new RegExp(String.raw`${fecha}`) } } : query = {}
 
     let arr = await scrape3Models.find(query)
 
@@ -479,14 +525,14 @@ async function deleteScrape3Cars(fecha) {
     console.log("deleted all scrape3 results")
 }
 
-async function getCars(fecha){
+async function getCars(fecha) {
     let query
-    arguments.length !== 0 ? query = {date:{$regex: new RegExp(String.raw`${fecha}`),$options:"i"}}: query = {}
+    arguments.length !== 0 ? query = { date: { $regex: new RegExp(String.raw`${fecha}`), $options: "i" } } : query = {}
     let arr = await scrape3Models.find(query)
 
-      console.log("cars are: ",arr)
-    
-    
+    console.log("cars are: ", arr)
+
+
 
 }
 
@@ -510,7 +556,7 @@ async function updateArray() {
 
 async function sliceArray() {
     let segment = await carArray.find({ nombre: "nuevo" }, {
-        "car_lista": { $slice: [15,20] }
+        "car_lista": { $slice: [15, 20] }
     })
     console.log(segment[0].car_lista.length)
 }
@@ -518,18 +564,18 @@ async function sliceArray() {
 async function removeArrayElement(fecha) {
     let query;
     let removed
-    if(arguments.length==0){
-        removed=await carArray.updateOne({nombre:"nuevo"},{$pull:{"car_lista" :{}}})
+    if (arguments.length == 0) {
+        removed = await carArray.updateOne({ nombre: "nuevo" }, { $pull: { "car_lista": {} } })
         console.log("removed all elements")
     }
-    else{
-           removed=await carArray.updateOne({nombre:"nuevo"},{$pull:{"car_lista":{"date":{$regex:new RegExp(String.raw`${fecha}`) }}}})
-           console.log(`removed ${removed} of fecha ${fecha}`)
-      } 
+    else {
+        removed = await carArray.updateOne({ nombre: "nuevo" }, { $pull: { "car_lista": { "date": { $regex: new RegExp(String.raw`${fecha}`) } } } })
+        console.log(`removed ${removed} of fecha ${fecha}`)
+    }
 }
 
-async function deleteUserFavorites(id){
-    let removed=await Users.updateOne({_id:id},{$pull:{"myFavourites":{}}})
+async function deleteUserFavorites(id) {
+    let removed = await Users.updateOne({ _id: id }, { $pull: { "myFavourites": {} } })
     return removed
 
 }
@@ -556,26 +602,26 @@ async function verifyCarArr() {
     let arr = await carArray.find({})
     if (arr && arr.length != 0) {
         //console.log(arr[0].car_lista.length)
-        arr[0].car_lista.forEach((element,index) => {
-            console.log(element,index)
+        arr[0].car_lista.forEach((element, index) => {
+            console.log(element, index)
         })
     }
 }
 
 ////RUN BOTH SCRAPING FUNCTIONS
 
-async function getDefinitiveResults(){
-   let currentDate=new Date(Date.now()).toString()
-   currentDate=currentDate.slice(0,currentDate.search(/2021/))
-   await getDefResults().then(res=>{
-       setTimeout(async x=>{
-        await allCars(currentDate).then(async t=>{ ////NOTE ADDED ASYNC T INSTEAD OF T AND AWAIT IN ADD CARS TO ARRAY 
-            setTimeout(async xy=>{
-                await addCarsToArray(currentDate)
-            },80000)
-        })        
-       },80000)
-   })
+async function getDefinitiveResults() {
+    let currentDate = new Date(Date.now()).toString()
+    currentDate = currentDate.slice(0, currentDate.search(/2021/))
+    await getDefResults().then(res => {
+        setTimeout(async x => {
+            await allCars(currentDate).then(async t => { ////NOTE ADDED ASYNC T INSTEAD OF T AND AWAIT IN ADD CARS TO ARRAY 
+                setTimeout(async xy => {
+                    await addCarsToArray(currentDate)
+                }, 80000)
+            })
+        }, 80000)
+    })
 }
 
 
@@ -589,8 +635,8 @@ async function getDefinitiveResults(){
 
 //sliceArray()
 
-deleteUserFavorites("60118b8a41d14b68d8f47ffc").then(async res=>
-    console.log("removed", res))
+/*deleteUserFavorites("60118b8a41d14b68d8f47ffc").then(async res=>
+    console.log("removed", res))*/
 
 
 //deleteScrape3Cars()
@@ -598,7 +644,7 @@ deleteUserFavorites("60118b8a41d14b68d8f47ffc").then(async res=>
 //deleteScrape3Cars("Sat Dec 19 2020")
 
 //getDefResults()
-//allCars("Sat Dec 19 2020")
+allCars("Thu Mar 18 2021")
 
 //getCars("Sat Dec 19 2020")
 //deleteScrape3Cars()
